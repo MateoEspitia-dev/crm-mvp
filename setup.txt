@@ -1,0 +1,190 @@
+# 1. Actualizar repositorios
+sudo apt update && sudo apt upgrade -y
+
+# 2. Instalar PHP y extensiones requeridas (La lista que me pasaste)
+Agregué 'php-pgsql' porque la base de datos es Postgres.
+sudo apt install php php-cli php-mbstring php-xml php-curl php-mysql php-pgsql php-zip unzip curl git -y
+
+# Descargar e instalar globalmente composer(Gestor de Paquetes PHP)
+curl -sS https://getcomposer.org/installer | php
+sudo mv composer.phar /usr/local/bin/composer
+
+# Verificar instalación
+composer --version
+
+Instalación Node.js y npm para angular
+# Opción rápida (Repositorios de Ubuntu)
+sudo apt install nodejs npm -y
+
+# Verificar versiones
+node -v
+npm -v
+
+Para poder ejecutar los comandos ng (Angular) y crear proyectos Laravel
+# Instalar Angular CLI (Global)
+sudo npm install -g @angular/cli
+
+# Instalador de Laravel
+composer global require laravel/installer
+
+Base de datos en docker
+
+docker run --name gelvez-db \
+    -e POSTGRES_PASSWORD=arroz \
+    -e POSTGRES_DB=crm_gelvez \
+    -p 5432:5432 \
+    -d postgres:15-alpine
+
+docker ps -> Ver si está corriendo.
+
+docker stop gelvez-db -> Apagarla.
+
+docker start gelvez-db -> Prenderla de nuevo
+
+# Crear proyecto (instala dependencias automáticamente)
+composer create-project laravel/laravel backend
+
+# Entrar y arrancar servidor
+cd backend
+php artisan serve
+
+Configuración en .env laravel para conexión con la base de datos
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=crm_gelvez
+DB_USERNAME=postgres
+DB_PASSWORD=arroz
+
+# Actualización tabla usuarios por defecto en /backend/database/seeders/UserSeeder.PHP
+ public function run(): void
+    {
+        \App\Models\User::create([
+        'name' => 'Pepe Vendedor',
+        'email' => 'pepe@gelvez.com.co', // Este será tu usuario
+        'password' => bcrypt('arroz123'), // Esta será tu contraseña
+    ]);
+    }
+
+# Creación tabla productos
+php artisan make:migration create_products_table en database/migrations/xxxx_create_products_table.php
+public function up(): void
+{
+    Schema::create('products', function (Blueprint $table) {
+        $table->id();
+        $table->string('name');
+        $table->string('sku')->unique(); // SKU único
+        $table->decimal('price', 8, 2);  // Precio con decimales
+        $table->timestamps(); // Crea created_at y updated_at
+    });
+}
+
+Ejecución de migraciones
+php artisan migrate
+
+# Token de seguridad para usuarios
+
+app/Models/User.php
+
+<?php
+namespace App\Models;
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; 
+
+class User extends Authenticatable
+{ 
+    use HasApiTokens, HasFactory, Notifiable; 
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}
+
+# Configuración de rutas para la api routes/api.php
+
+php artisan install:api
+
+<?php
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductController;
+
+// Login Público
+Route::post('/login', [AuthController::class, 'login']);
+
+// Rutas Privadas
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
+
+    Route::get('/products', [ProductController::class, 'index']);
+});
+
+# Crear proyecto en Angular (con estilos CSS y Router)
+ng new frontend 
+
+Which stylesheet format would you like to use? 👉 Tailwind CSS 
+
+Do you want to enable Server-Side Rendering (SSR)? 👉 No 
+
+# Entrar y arrancar servidor
+cd frontend
+ng serve
+
+luego comandos para estructura
+ng generate component pages/login
+ng generate component pages/dashboard
+ng generate service services/auth
+ng generate service services/product
+
+src/app/
+├── pages/       # Vistas completas (Login, Dashboard)
+├── services/    # Lógica de comunicación (AuthService, ProductService)
+└── components/  # Piezas reusables aun no implementada
+
+# Configuración del Núcleo o configuración global de Angular(app.config.ts) para seguridad por tokens desde php
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideRouter(routes),
+    // 👇 Habilita el cliente HTTP y conecta el Interceptor
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor])) 
+  ]
+};
+
+#Correción problema con Zone.js por uso de Angular 21 
+NG0908: In this configuration Angular requires Zone.js
+
+npm install zone.js --save | Comando de la Terminal 
+
+src/main.ts
+
+import 'zone.js'; // 👈 La línea de la solución
+import { bootstrapApplication } from '@angular/platform-browser';
+
+# Configuraciones de autenticacion (JSON Web Token(JWT)) minimo estandar de seguridad debe ser mejorado 
+porque es accesible por Vulnerabilidad XSS.
+# Se debe mejorar la configuracion de cors en php para mejorar la seguridad de la api
+'allowed_origins' => ['https://mi-empresa-crm.com'], y no en general {*} implementada en este momento y rate limit de peticiones
+
+# Configuraciones de pages login y dashboard basico
+
+ng serve y php artisan serve
