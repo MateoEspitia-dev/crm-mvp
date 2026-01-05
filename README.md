@@ -1,5 +1,6 @@
 📘 Guía de Construcción: CRM Fullstack (Laravel 11 + Angular 21)
 Autor: Mateo (Ingeniero de Software en formación) Fecha: Enero 2026 Objetivo: Crear un prototipo funcional de CRM con autenticación segura y dashboard de productos.
+Nota: Tambien fijarse en el archivo setup.txt
 
 🏗️ Fase 1: El Backend (Laravel API)
 El cerebro de la aplicación. Se encarga de la base de datos y la seguridad.
